@@ -7,9 +7,9 @@ WiX Toolsetで単純なインストーラを作るときのテンプレートです。
 - build.bat : msiを作成するバッチファイル
 - hoge.wxs : メインとなるwxsソース
 - myui : WixUI_InstallDirのカスタマイズ版
-  - MyInstallDirDlg.wxs
-  - MyExitDialog.wxs
-  - MyUI_InstallDir.wxs
+  - MyInstallDirDlg.wxs : WixUIのものに対して、「デスクトップにショートカットを作る」チェックボックスを追加したもの
+  - MyExitDialog.wxs : WixUIのものに対して、チェックボックスを二つ表示できるようにしたもの(アプリ起動用、README表示用)
+  - MyUI_InstallDir.wxs : 上のカスタマイズ版ダイアログを使うようにしたもの
 - banner.bmp : バナー画像
 - dialog.bmp : ダイアログ背景画像
 - input : インストールするファイル
