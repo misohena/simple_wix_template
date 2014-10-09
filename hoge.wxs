@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+(while (re-search-forward "PUT-GUID" nil t) (replace-match (concat "{" (substring (shell-command-to-string "uuidgen") 0 -1) "}")))
+(while (re-search-forward "\"{[a-zA-Z0-9-]+}\"" nil t) (replace-match (concat "\"{" (substring (shell-command-to-string "uuidgen") 0 -1) "}\"")))
+-->
+
+<?define ProductName = "SAS5TEST" ?>
+<?define Manufacturer = "STUDIO SELDOM" ?>
+<?define SrcDir = "$(sys.CURRENTDIR)input\" ?>
+<?define MainExeFileName = "hoge.exe" ?>
+<?define ReadmeFileName = "readme.txt" ?>
+<?define UseCustomUI = "yes" ?>
+<?define AppRegKey = "Software\$(var.Manufacturer)\$(var.ProductName)" ?>
+<?define Compressed = "no" ?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="{3A01BC71-05DC-489E-A5DB-A1D18047B313}"
+           UpgradeCode="{96D15F97-EA46-45DD-8F42-2E60EDFB8927}"
+           Name="$(var.ProductName)"
+           Manufacturer="$(var.Manufacturer)"
+           Version="1.0.0.0"
+           Language="1041" Codepage="932">
+    <Package InstallerVersion="200" Compressed="$(var.Compressed)" />
+
+    <?if $(var.Compressed)="yes" ?>
+    <MediaTemplate EmbedCab="yes" />
+    <?else ?>
+    <Media Id="1" DiskPrompt="DISK1" />
+    <Property Id="DiskPrompt" Value="インストールディスク [1]" />
+    <?endif ?>
+
+    <Icon Id="MainIcon" SourceFile="$(var.SrcDir)$(var.MainExeFileName)" />
+    <Property Id="ARPPRODUCTICON" Value="MainIcon" />
+
+    <!-- Directory Structure -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <!-- INSTALLDIR -->
+      <Directory Id="ProgramFilesFolder" Name="ProgramFiles">
+        <Directory Id="ProgramFilesManufacturer" Name="$(var.Manufacturer)">
+          <Directory Id="INSTALLDIR" Name="$(var.ProductName)">
+          </Directory>
+        </Directory>
+      </Directory>
+      <!-- Start Menu -->
+      <Directory Id="ProgramMenuFolder" Name="Programs">
+        <Directory Id="AppStartMenuDir" Name="$(var.Manufacturer) $(var.ProductName)">
+        </Directory>
+      </Directory>
+      <!-- Desktop -->
+      <Directory Id="DesktopFolder" Name="Desktop">
+      </Directory>
+    </Directory>
+
+    <!-- Feature -->
+    <Feature Id="EssentialFeature" Level="1">
+      <ComponentGroupRef Id="EssentialFiles" />
+      <ComponentRef Id="EssentialRegistries" />
+      <ComponentRef Id="EssentialShortcuts" />
+      <ComponentRef Id="EssentialDesktopShortcut" />
+    </Feature>
+
+    <!-- Files -->
+    <ComponentGroup Id="EssentialFiles" Directory="INSTALLDIR">
+      <Component Id="file0001" Guid="{42C5539F-C8EF-454F-A92C-7B8144DFB64A}">
+        <File Id="file0001" KeyPath="yes" Source="$(var.SrcDir)$(var.MainExeFileName)" />
+      </Component>
+      <Component Id="file0002" Guid="{EA04B2BF-BF65-44AA-BFBB-DE9627DBB41E}">
+        <File Id="file0002" KeyPath="yes" Source="$(var.SrcDir)hoge.dat" />
+      </Component>
+      <Component Id="file0003" Guid="{746a7353-3c99-4b0d-be35-b5c095b0f17a}">
+        <File Id="file0003" KeyPath="yes" Source="$(var.SrcDir)$(var.ReadmeFileName)" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- Shortcuts -->
+    <DirectoryRef Id="AppStartMenuDir">
+      <Component Id="EssentialShortcuts" Guid="{20300C6E-A0B2-4021-838F-CDAEF616FE14}">
+        <RegistryValue Root="HKCU" Key="$(var.AppRegKey)" Name="InstalledStartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+        <RemoveFolder Id="AppStartMenuDir" On="uninstall" />
+        <Shortcut Id="startMenuShortcut0001" Name="$(var.ProductName)" Target="[INSTALLDIR]$(var.MainExeFileName)" WorkingDirectory="INSTALLDIR" />
+        <Shortcut Id="startMenuShortcut0002" Name="README.txt" Target="[INSTALLDIR]$(var.ReadmeFileName)" WorkingDirectory="INSTALLDIR" />
+      </Component>
+    </DirectoryRef>
+    <Property Id="INSTALLDESKTOPSHORTCUT" Value="1" />
+    <DirectoryRef Id="DesktopFolder">
+      <Component Id="EssentialDesktopShortcut" Guid="{D2470090-0CBB-47C7-9B9E-B576702A166C}">
+        <Condition>INSTALLDESKTOPSHORTCUT</Condition>
+        <RegistryValue Root="HKCU" Key="$(var.AppRegKey)" Name="InstalledDesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+        <Shortcut Id="desktopShortcut0001" Name="$(var.ProductName)" Target="[INSTALLDIR]$(var.MainExeFileName)" WorkingDirectory="INSTALLDIR" />
+      </Component>
+    </DirectoryRef>
+
+    <!-- Registries -->
+    <DirectoryRef Id="INSTALLDIR">
+      <Component Id="EssentialRegistries" Guid="{18C59A00-7E56-473A-94F7-CF29BA6CB1ED}">
+        <RegistryKey Root="HKCU" Key="$(var.AppRegKey)" ForceCreateOnInstall="yes" ForceDeleteOnUninstall="yes">
+          <RegistryValue Type="string" Name="InstalledPath" Value="[INSTALLDIR]" KeyPath="yes" />
+        </RegistryKey>
+      </Component>
+    </DirectoryRef>
+
+    <!-- User Interface -->
+    <!-- UI: Install Directory -->
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+
+    <!-- UI: Bitmap -->
+    <WixVariable Id="WixUIBannerBmp" Value="banner.bmp" /><!-- 493x58 -->
+    <WixVariable Id="WixUIDialogBmp" Value="dialog.bmp" /><!-- 493x312 -->
+
+    <?if $(var.UseCustomUI) = "yes" ?>
+      <UIRef Id="MyUI_InstallDir" />
+      <!-- UI: Run application after installed (for MyUI_InstallDir) -->
+      <?if $(var.MainExeFileName) And $(var.MainExeFileName)!="" ?>
+        <Property Id="MYUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="プログラムを実行する" />
+        <Property Id="MYUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+        <CustomAction Id="LaunchApplication" Directory="INSTALLDIR" ExeCommand="[INSTALLDIR]$(var.MainExeFileName)" Return="asyncNoWait" />
+        <UI>
+          <Publish Dialog="MyExitDialog" Control="Finish" Event="DoAction" Value="LaunchApplication">MYUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
+        </UI>
+      <?endif ?>
+      <?if $(var.ReadmeFileName) And $(var.ReadmeFileName)!="" ?>
+        <Property Id="MYUI_EXITDIALOGOPTIONALCHECKBOXTEXT2" Value="Readmeを開く" />
+        <Property Id="MYUI_EXITDIALOGOPTIONALCHECKBOX2" Value="1" />
+        <Property Id="WixShellExecTarget" Value="[INSTALLDIR]$(var.ReadmeFileName)" />
+        <CustomAction Id="LaunchReadme" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
+        <UI>
+          <Publish Dialog="MyExitDialog" Control="Finish" Event="DoAction" Value="LaunchReadme">MYUI_EXITDIALOGOPTIONALCHECKBOX2 = 1 and NOT Installed</Publish>
+        </UI>
+      <?endif ?>
+      <!-- UI: Skip license (for WixUI_InstallDir) -->
+      <UI>
+        <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="MyInstallDirDlg">1</Publish>
+        <Publish Dialog="MyInstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+      </UI>
+
+    <?else ?>
+
+      <UIRef Id="WixUI_InstallDir" />
+      <!-- UI: Run application after installed (for WixUI_InstallDir) -->
+      <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="プログラムを実行する" />
+      <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+      <CustomAction Id="LaunchApplication" Directory="INSTALLDIR" ExeCommand="[INSTALLDIR]$(var.MainExeFileName)" Return="asyncNoWait" />
+      <UI>
+        <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApplication">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
+      </UI>
+      <!-- UI: Skip license (for WixUI_InstallDir) -->
+      <UI>
+        <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">1</Publish>
+        <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+      </UI>
+    <?endif ?>
+
+
+  </Product>
+</Wix>

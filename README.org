@@ -1,0 +1,24 @@
+* WiX Setup Template
+
+WiX Toolsetで単純なインストーラを作るときのテンプレートです。
+
+ディレクトリ構成は次の通りです。
+
+- build.bat : msiを作成するバッチファイル
+- hoge.wxs : メインとなるwxsソース
+- myui : WixUI_InstallDirのカスタマイズ版
+  - MyInstallDirDlg.wxs
+  - MyExitDialog.wxs
+  - MyUI_InstallDir.wxs
+- banner.bmp : バナー画像
+- dialog.bmp : ダイアログ背景画像
+- input : インストールするファイル
+  - hoge.exe
+  - hoge.dat
+  - readme.txt
+
+WiX Toolsetのバイナリディレクトリにパスを通してbuild.batを実行するとmsiファイルができあがります。
+
+製品名、製造者名、インストールするファイル、ショートカット、レジストリ等を変更するにはhoge.wxsを修正してください。
+
+Bootstrapper(setup.exe)は無いので、必要ならdotNetInstallerや[[https://github.com/misohena/simple_msi_bootstrapper][単純にmsiを起動するだけのsetup.exe]]等を使用してください。

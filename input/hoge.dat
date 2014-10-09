@@ -1,0 +1,34 @@
+#include <vector>
+#include <windows.h>
+#include <tchar.h>
+
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+{
+	HANDLE hFile = CreateFile(_T("hoge.dat"), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE){
+		MessageBox(NULL, _T("ファイルが開けませんでした。"), _T("エラー"), MB_OK);
+		return 0;
+	}
+
+	std::vector<char> input;
+	for (;;){
+		DWORD bufferBytes = 0;
+		char buffer[256];
+		if (!ReadFile(hFile, buffer, sizeof(buffer), &bufferBytes, NULL)){
+			break;
+		}
+		input.insert(input.end(), buffer, buffer + bufferBytes);
+		if (bufferBytes == 0){
+			break;
+		}
+	}
+
+	const int resultChars = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, input.data(), input.size(), NULL, 0);
+	std::vector<WCHAR> result(resultChars + 1);
+	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, input.data(), input.size(), result.data(), resultChars);
+	result[resultChars] = '\0';
+
+	MessageBox(NULL, &result[0], _T("Hoge Application"), MB_OK);
+
+	return 0;
+}
